@@ -1,0 +1,9 @@
+public/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+mutants/
+mutation-*-report.txt
+*.pyc
+.DS_Store
+._*

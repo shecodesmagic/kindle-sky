@@ -1,0 +1,6 @@
+# Test and lint tools (CI). actionlint comes from `go install` (see ci.yml). Lock with:
+#   uv pip compile --universal --generate-hashes --python-version 3.12 requirements-dev.in -o requirements-dev.txt
+-r requirements.in
+pytest==9.2.0
+ruff==0.17.5
+shellcheck-py==0.11.0.1

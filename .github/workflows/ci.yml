@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.13"
+      - name: Install (hash-locked wheels only, no build scripts)
+        run: "python -m pip install --disable-pip-version-check --require-hashes --only-binary :all: --no-deps -r requirements-dev.txt"
+      - name: Install busybox and dash (to test the Kindle scripts with a Kindle-like shell)
+        run: sudo apt-get install -y --no-install-recommends busybox dash
+      - name: Install actionlint (pinned; verified against Go's checksum database)
+        run: |
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+      - name: Lint
+        run: |
+          ruff check .
+          shellcheck -s sh kindle/kindle-sky/*.sh "kindle/documents/Sky Mode.sh"
+          actionlint
+      - name: Tests
+        run: python -m pytest -q

@@ -1,0 +1,7 @@
+# Runtime dependencies of the renderer. Lock with:
+#   uv pip compile --universal --generate-hashes --python-version 3.12 requirements.in -o requirements.txt
+skyfield==1.55
+skyfield-data==7.0.0    # JPL DE421 ephemeris (1899-2053), shipped as a wheel so pip checks its hash
+numpy==2.5.5
+pillow==13.0.0
+tzdata                  # time-zone rules, in case the host has none

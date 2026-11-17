@@ -1,0 +1,57 @@
+name: Render sky
+
+# Renders 3 hours of frames (one every 5 minutes) and publishes them on GitHub
+# Pages. The Kindle picks the frame for its own clock, so a late or skipped
+# scheduled run does not make the sky stale (up to ~3 hours of slack).
+on:
+  schedule:
+    - cron: "11,41 * * * *"   # twice an hour, off the busy top of the hour
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions: {}               # nothing by default; each job asks for what it needs
+
+concurrency:
+  group: pages
+  cancel-in-progress: false   # never cancel a deploy half-way
+
+jobs:
+  build:
+    # Runs third-party Python (skyfield, numpy, Pillow). Read-only token, no
+    # Pages or OIDC permissions, so it cannot publish anything itself.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.13"
+      - name: Install (hash-locked wheels only, no build scripts)
+        run: "python -m pip install --disable-pip-version-check --require-hashes --only-binary :all: --no-deps -r requirements.txt"
+      - name: Render frames
+        run: python -m kindlesky.render --out public
+      - name: Check every image the Kindle will download
+        run: python -m kindlesky.validate public
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
+        with:
+          path: public
+
+  deploy:
+    # Only GitHub's own deploy action runs here; no repository code.
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346  # v5.0.1

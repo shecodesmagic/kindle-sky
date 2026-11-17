@@ -1,0 +1,36 @@
+[project]
+name = "kindlesky"
+version = "1.0.0"
+description = "Live night-sky images for a jailbroken Kindle Paperwhite 3"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "tests"]
+markers = [
+    "slow: long stability runs (many renders); run with -m slow",
+]
+addopts = "-m 'not slow'"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "BLE", "SIM", "PL", "RUF"]
+ignore = [
+    "PLR0913", "PLR0912", "PLR0915", "PLR2004", "PLW2901", "S101", "S603", "S607", "S311", "PLC0415",
+    "RUF001", "RUF002", "RUF003",
+    "E741",     # l, t, r, b = textbbox(...) is clearer than renaming
+    "PLR0917",  # positional args in small drawing helpers
+    "B905",     # zip() over arrays of equal length by construction
+    "SIM105",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S108", "PLR0911"]
+
+[tool.mutmut]
+source_paths = ["kindlesky/"]
+also_copy = ["kindlesky/data/", "kindlesky/fonts/"]
+pytest_add_cli_args_test_selection = ["tests/test_render.py"]
